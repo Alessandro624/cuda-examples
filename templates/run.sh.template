@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# RUN.SH TEMPLATE
+# Copy this file into a module directory and adapt the variables below.
+
+cd "$(dirname "$0")"
+
+BIN="{BINARY_NAME}"
+if [ "$#" -gt 0 ] && { [ "$1" = "-h" ] || [ "$1" = "--help" ]; }; then
+  cat <<EOF
+Usage: $0 [--n N] [--threads T] [--mode M]
+
+Flags:
+  --n N          : number of elements
+  --threads T    : threads per block
+  --mode M       : execution mode
+EOF
+  exit 0
+fi
+
+if [ ! -x "$BIN" ]; then
+  echo "Building..."
+  make
+fi
+
+"$BIN" "$@"
