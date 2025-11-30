@@ -1,0 +1,43 @@
+# Build artifacts
+**/build/
+**/bin/
+*.o
+*.obj
+*.so
+*.a
+*.dll
+
+# Executables (common example names)
+vectAdd
+matrixMul
+matrixVectMul
+imageBlur
+imageToGrayscale
+errorCudaMemcpy
+deviceSpec
+convolution1D
+convolution2D
+
+# Profiler and logs
+*.nvvp
+*.prof
+nvprof-*.log
+*.log
+
+# OS and editor
+.DS_Store
+.vscode/
+.idea/
+__pycache__/
+.pytest_cache/
+
+# Temporary files
+*~
+
+# Swap files
+*.swp
+
+# Images
+*.png
+*.jpg
+*.jpeg
