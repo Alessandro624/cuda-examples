@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# PROFILE_NVPROF TEMPLATE
+# Copy this template into a module directory as `profile_nvprof.sh` and make executable.
+
+cd "$(dirname "$0")"
+
+BIN="{BINARY_NAME}"
+if [ "$#" -gt 0 ] && { [ "$1" = "-h" ] || [ "$1" = "--help" ]; }; then
+  cat <<EOF
+Usage: $0 [--n N] [--threads T] [--] [extra args passed to binary]
+
+This script runs the module binary under `nvprof` and saves profiler output to a timestamped file.
+EOF
+  exit 0
+fi
+
+if [ ! -x "$BIN" ]; then
+  echo "Building..."
+  make
+fi
+
+OUTFILE="nvprof_${BIN}_$(date +%Y-%m-%d_%H-%M-%S).log"
+echo "Profiling $BIN "$@" -> $OUTFILE"
+nvprof --print-gpu-trace --log-file "$OUTFILE" "$BIN" "$@"
+echo "Profile saved to $OUTFILE"
