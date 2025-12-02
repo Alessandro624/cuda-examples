@@ -59,12 +59,12 @@ If you do not have `nvprof`, install the CUDA toolkit, or run the GitHub Actions
 
 Click the folders below for the example README files and more details:
 
-- [`Vector Addition`](`vector_addition/`) — vector add example
-- [`Error Handling`](`error_handling/`) — examples showing CUDA error handling
+- [`Vector Addition`](vector_addition/) — vector add example
+- [`Error Handling`](error_handling/) — examples showing CUDA error handling
 - [`Device Specification`](device_specification/) — device query and capability examples
-- [`Image Manipulation`](`image_manip/`) — image processing examples (blur, grayscale); includes `stb` helper headers
-- [`Matrix-Vector Multiplication`](`matrix_vector_multiplication/`) — matrix-vector multiplication example
-- [`Matrix Multiplication`](`matrix_multiplication/`) — matrix multiplication example
+- [`Image Manipulation`](image_manip/) — image processing examples (blur, grayscale); includes `stb` helper headers
+- [`Matrix-Vector Multiplication`](matrix_vector_multiplication/) — matrix-vector multiplication example
+- [`Matrix Multiplication`](matrix_multiplication/) — matrix multiplication example
 - [`Convolution`](convolution/) — convolution examples (1D & 2D)
 
 Each folder includes a `README.md` with per-example instructions.
