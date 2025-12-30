@@ -19,6 +19,7 @@ convolution1D
 convolution2D
 vectAdd_errors
 gpu_info
+parallel_histogram
 
 # Profiler and logs
 *.nvvp
