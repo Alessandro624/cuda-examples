@@ -1,48 +1,60 @@
-# Error-handling demos for vector addition
+# Error Handling Demos
 
-This directory contains small programs that intentionally trigger common CUDA
-runtime and kernel errors so you can observe runtime messages and test
-profiling/debugging tools such as `nvprof`.
+This directory contains small programs that intentionally trigger common CUDA runtime and kernel errors so you can observe runtime messages and test profiling/debugging tools.
 
-Build:
+## Build
 
 ```bash
 cd error_handling
 make
 ```
 
-Programs and usage:
+## Usage
 
-- `vectAdd_errors [--mode idx]` : vector-add demo with intentional error modes
-  - Mode 0 (or no mode): safe run
-  - Mode 1 : excessive block size (invalid kernel launch configuration)
-  - Mode 2 : invalid host pointer passed to `cudaMemcpy`
-  - Mode 3 : excessive allocation request (forced `cudaMalloc` failure)
-  - Mode 4 : referencing invalid device pointer in kernel (NULL/invalid)
-  - Mode 5 : out-of-bounds global memory write in kernel
+### vectAdd_errors
 
-- `errorCudaMemcpy` : separate demo that demonstrates common cudaMemcpy /
-  memory-management mistakes, including incorrect sizes, nullptr copies and
-  misuse of `cudaMemcpyDeviceToDevice`. This file includes its own checking
-  macros and intentionally triggers runtime/runtime-sticky errors for testing.
-
-Run examples (local runner):
+Vector-add demo with intentional error modes:
 
 ```bash
-# Run vectAdd_errors in a specific mode:
+./vectAdd_errors [--mode MODE] [--n N]
+```
+
+**Modes:**
+
+| Mode | Description |
+|------|-------------|
+| 0 | Safe run (no errors) |
+| 1 | Excessive block size (invalid launch configuration) |
+| 2 | Invalid host pointer passed to `cudaMemcpy` |
+| 3 | Excessive allocation request (forced `cudaMalloc` failure) |
+| 4 | Referencing invalid device pointer in kernel |
+| 5 | Out-of-bounds global memory write in kernel |
+
+### errorCudaMemcpy
+
+Demonstrates common `cudaMemcpy` and memory-management mistakes:
+- Incorrect sizes
+- nullptr copies
+- Misuse of `cudaMemcpyDeviceToDevice`
+
+## Run
+
+```bash
+# Run vectAdd_errors in a specific mode
 ./run.sh vectAdd_errors --mode 1 --n 1024
-# Run the errorCudaMemcpy demo:
+
+# Run the errorCudaMemcpy demo
 ./run.sh errorCudaMemcpy --n 1024
 ```
 
-Profile with nvprof:
+## Profiling
 
 ```bash
 ./profile_nvprof.sh errorCudaMemcpy
 ```
 
-Notes:
+## Notes
 
-- The examples are intentionally invalid — run them in a controlled environment
-  for learning and debugging. The programs print CUDA error strings produced by
-  the runtime. Use `nvprof` output to inspect kernel activity and memory events.
+- These examples are **intentionally invalid** — run them in a controlled environment for learning and debugging.
+- The programs print CUDA error strings produced by the runtime.
+- Use `nvprof` or `compute-sanitizer` to inspect kernel activity and memory events.

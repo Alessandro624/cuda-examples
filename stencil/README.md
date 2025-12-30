@@ -165,3 +165,10 @@ Kernel: stencil_register (tile 32x8, register z-sweep)
 2. **Memory Bandwidth**: Stencil kernels are typically memory-bound
 3. **Occupancy**: Tile size affects SM occupancy
 4. **Register Pressure**: Register tiling may limit occupancy
+
+## Notes
+
+- Uses 7 independent coefficients (c0-c6) for flexibility.
+- Host-side verification ensures correctness against CPU reference.
+- All kernels include boundary handling (skip boundary points).
+- Use `NVCCFLAGS` in the `Makefile` to tune compilation flags.
