@@ -72,13 +72,41 @@ def get_unit_multiplier(unit_str):
     return multipliers.get(u, 1.0)
 
 def read_csv_with_units(path):
-    """Read CSV with optional unit row"""
+    """Read CSV with optional unit row, handling nvprof multi-line format"""
     rows = []
     if not os.path.exists(path):
         return rows
     
     with open(path, 'r', newline='', encoding='utf-8', errors='ignore') as f:
-        lines = f.readlines()
+        content = f.read()
+    
+    if not content.strip():
+        return rows
+    
+    # Clean nvprof output: merge lines that are continuations
+    # nvprof sometimes splits long kernel names across lines
+    lines = []
+    buffer = ""
+    for line in content.split('\n'):
+        stripped = line.strip()
+        # Skip nvprof header lines
+        if stripped.startswith('==') or not stripped:
+            continue
+        
+        # Count quotes to detect incomplete lines
+        buffer += line
+        quote_count = buffer.count('"')
+        
+        if quote_count % 2 == 0:
+            # Complete line
+            lines.append(buffer.strip())
+            buffer = ""
+        else:
+            # Incomplete line, continue buffering
+            buffer += " "
+    
+    if buffer.strip():
+        lines.append(buffer.strip())
     
     if not lines:
         return rows
@@ -86,15 +114,16 @@ def read_csv_with_units(path):
     # Find header line
     header_idx = -1
     for i, line in enumerate(lines[:20]):
-        if '"Name"' in line or 'Name' in line or 'Kernel' in line:
+        if '"Type"' in line or '"Name"' in line or 'Name' in line or 'Kernel' in line:
             header_idx = i
             break
     
     if header_idx == -1:
         return rows
     
-    # Parse header
-    keys = [k.strip().replace('"', '') for k in lines[header_idx].strip().split(',')]
+    # Parse header - handle quoted CSV properly
+    header_line = lines[header_idx]
+    keys = parse_csv_line(header_line)
     
     # Check for unit row
     unit_map = {}
@@ -102,9 +131,9 @@ def read_csv_with_units(path):
     
     if len(lines) > header_idx + 1:
         next_line = lines[header_idx + 1]
-        potential_units = [u.strip().replace('"', '') for u in next_line.strip().split(',')]
+        potential_units = parse_csv_line(next_line)
         
-        # Check if this looks like a unit row
+        # Check if this looks like a unit row (contains time units or %)
         if any(u in ['s', 'ms', 'us', 'ns', '%'] for u in potential_units):
             data_start_idx = header_idx + 2
             for i, u in enumerate(potential_units):
@@ -112,32 +141,62 @@ def read_csv_with_units(path):
                     unit_map[keys[i]] = get_unit_multiplier(u)
     
     # Read data rows
-    reader = csv.DictReader(lines[data_start_idx:], fieldnames=keys)
-    for row in reader:
-        clean_row = {}
-        for k, v in row.items():
-            if not v:
-                clean_row[k] = v
-                continue
-            
-            # Apply unit conversion
-            if k in unit_map and unit_map[k] != 1.0:
-                try:
-                    val_clean = re.sub(r'[^0-9\.]', '', v)
-                    clean_row[k] = float(val_clean) * unit_map[k]
-                except:
-                    clean_row[k] = v
-            else:
-                clean_row[k] = v
+    for line in lines[data_start_idx:]:
+        if not line.strip():
+            continue
         
-        rows.append(clean_row)
+        values = parse_csv_line(line)
+        row = {}
+        
+        for i, val in enumerate(values):
+            if i < len(keys):
+                key = keys[i]
+                # Apply unit conversion
+                if key in unit_map and unit_map[key] != 1.0:
+                    try:
+                        val_clean = re.sub(r'[^0-9\.\-eE]', '', val)
+                        if val_clean:
+                            row[key] = float(val_clean) * unit_map[key]
+                        else:
+                            row[key] = val
+                    except:
+                        row[key] = val
+                else:
+                    row[key] = val
+        
+        if row:
+            rows.append(row)
     
     return rows
+
+def parse_csv_line(line):
+    """Parse a CSV line handling quoted fields"""
+    fields = []
+    current = ""
+    in_quotes = False
+    
+    for char in line:
+        if char == '"':
+            in_quotes = not in_quotes
+        elif char == ',' and not in_quotes:
+            fields.append(current.strip().replace('"', ''))
+            current = ""
+        else:
+            current += char
+    
+    fields.append(current.strip().replace('"', ''))
+    return fields
 
 def extract_kernel_name(full_name, kernel_filter=None):
     """Extract kernel name from full mangled name"""
     if not full_name:
         return None
+    
+    # Skip memory operations and API calls
+    skip_patterns = ['[CUDA memcpy', '[CUDA memset', 'cudaLaunch', 'cudaMalloc', 'cudaFree']
+    for skip in skip_patterns:
+        if skip in full_name:
+            return None
     
     # If filter provided, check if any filter matches
     if kernel_filter:
@@ -146,18 +205,21 @@ def extract_kernel_name(full_name, kernel_filter=None):
                 return kf
         return None  # No match, skip this kernel
     
-    # Otherwise, extract base kernel name
-    # Try to get meaningful name from mangled C++ names
-    patterns = [
-        r'void\s+(\w+)',  # void kernel_name<...>
-        r'(\w+)(?:<|::)',  # kernel_name<...> or kernel_name::...
-        r'^([a-zA-Z_]\w+)',  # Simple name at start
-    ]
+    # Extract kernel name from mangled C++ name
+    # Pattern 1: "kernel_name(args)" or "kernel_name<template>(args)"
+    match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)', full_name)
+    if match:
+        return match.group(1)
     
-    for pattern in patterns:
-        match = re.search(pattern, full_name)
-        if match:
-            return match.group(1)
+    # Pattern 2: "void kernel_name<...>(...)"
+    match = re.search(r'void\s+(\w+)', full_name)
+    if match:
+        return match.group(1)
+    
+    # Pattern 3: Namespace::kernel_name
+    match = re.search(r'(\w+)(?:<|::|\()', full_name)
+    if match:
+        return match.group(1)
     
     return full_name[:50]  # Truncate long names
 
@@ -212,19 +274,32 @@ def parse_dataset(base_path, kernel_filter=None):
     
     # Parse summary (time and invocations)
     for row in csv_data.get('summary', []):
-        kname = extract_kernel_name(row.get('Name', ''), kernel_filter)
+        # Handle different column names for kernel name
+        name_val = row.get('Name', row.get('Kernel', ''))
+        kname = extract_kernel_name(name_val, kernel_filter)
         if not kname:
             continue
         
         ensure_kernel(kname)
         
-        # Time
-        for time_field in ['Time', 'GPU Time', 'Duration']:
+        # Time - check various field names and handle already-converted values
+        time_val = None
+        for time_field in ['Time', 'GPU Time', 'Duration', 'Avg']:
             if time_field in row and row[time_field]:
                 try:
-                    kernels[kname]['time_total_s'] = float(row[time_field])
-                    break
-                except:
+                    val = row[time_field]
+                    if isinstance(val, (int, float)):
+                        time_val = float(val)
+                    else:
+                        # Remove non-numeric chars and parse
+                        val_clean = re.sub(r'[^0-9\.\-eE]', '', str(val))
+                        if val_clean:
+                            time_val = float(val_clean)
+                    if time_val is not None and time_val > 0:
+                        # Accumulate time for same kernel (multiple invocations)
+                        kernels[kname]['time_total_s'] += time_val
+                        break
+                except Exception as e:
                     pass
         
         # Invocations
@@ -232,7 +307,8 @@ def parse_dataset(base_path, kernel_filter=None):
             if inv_field in row and row[inv_field]:
                 try:
                     inv_str = str(row[inv_field])
-                    kernels[kname]['invocations'] = int(re.sub(r'[^0-9]', '', inv_str) or 1)
+                    inv_val = int(re.sub(r'[^0-9]', '', inv_str) or 1)
+                    kernels[kname]['invocations'] += inv_val
                     break
                 except:
                     pass
@@ -369,9 +445,9 @@ def main():
     
     for summary_file in summary_files:
         base_path = summary_file.replace('_summary.csv', '')
-        version_name = clean_version_name(base_path)
+        exec_name = clean_version_name(base_path)
         
-        print(f"\n--- {version_name} ---")
+        print(f"\n--- {exec_name} ---")
         
         data = parse_dataset(base_path, kernel_filter)
         kernels = data['kernels']
@@ -380,30 +456,35 @@ def main():
             print(f"  No kernels found")
             continue
         
-        # Aggregate metrics
-        total_time = sum(k['time_total_s'] for k in kernels.values())
-        total_flops = sum(k['total_flops'] for k in kernels.values())
-        total_bytes = sum(k['total_bytes'] for k in kernels.values())
-        
-        all_occupancies = []
-        for k in kernels.values():
-            all_occupancies.extend(k['occupancies'])
-        
-        avg_occupancy = statistics.mean(all_occupancies) if all_occupancies else 0.0
-        
-        # Calculate roofline point
-        if total_flops > 0 and total_time > 0:
-            result = calculate_roofline_point(total_flops, total_bytes, total_time, version_name)
-            if result:
-                gflops, ai = result
-                roofline_data.append({
-                    'label': version_name,
-                    'ai': ai,
-                    'gflops': gflops
-                })
-        
-        time_data.append((version_name, total_time))
-        occupancy_data.append((version_name, avg_occupancy))
+        # Generate data for EACH kernel separately
+        for kernel_name, kdata in kernels.items():
+            # Create label: "ExecName_KernelName" or just "KernelName" if single exec
+            if len(summary_files) > 1:
+                label = f"{exec_name}_{kernel_name}"
+            else:
+                label = kernel_name
+            
+            kernel_time = kdata['time_total_s']
+            kernel_flops = kdata['total_flops']
+            kernel_bytes = kdata['total_bytes']
+            
+            # Calculate roofline point for this kernel
+            if kernel_flops > 0 and kernel_time > 0:
+                result = calculate_roofline_point(kernel_flops, kernel_bytes, kernel_time, exec_name, kernel_name)
+                if result:
+                    gflops, ai = result
+                    roofline_data.append({
+                        'label': label,
+                        'ai': ai,
+                        'gflops': gflops
+                    })
+            
+            # Time data per kernel
+            time_data.append((label, kernel_time))
+            
+            # Occupancy per kernel
+            avg_occupancy = statistics.mean(kdata['occupancies']) if kdata['occupancies'] else 0.0
+            occupancy_data.append((label, avg_occupancy))
     
     # Write output files
     with open(os.path.join(results_dir, 'roofline_data.dat'), 'w') as f:

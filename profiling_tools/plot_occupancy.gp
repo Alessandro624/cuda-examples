@@ -24,7 +24,7 @@ stats data_file using 2 nooutput prefix "OCC"
 n_entries = OCC_records
 avg_occ = OCC_mean
 
-set title sprintf("GPU SM Occupancy Comparison\nAverage: %.1f%%", avg_occ * 100) font ",16" enhanced
+set title sprintf("GPU SM Occupancy Comparison\nAverage: %.2f%%", avg_occ * 100) font ",16" enhanced
 set xlabel "Implementation" font ",13" offset 0,-0.5
 set ylabel "Occupancy (%)" font ",13" offset -1,0
 
@@ -51,7 +51,7 @@ if (n_entries > 6) {
 }
 
 # Format y-axis as percentage
-set ytics format "%.0f%%" font ",10"
+set ytics format "%.2f%%" font ",10"
 set ytics 10
 
 # Color bars by occupancy level (improved colors)
@@ -91,7 +91,7 @@ plot data_file using 0:($2*100 < 30 ? $2*100 : 1/0):xtic(1) with boxes ls 1 titl
      ''        using 0:($2*100 >= 30 && $2*100 < 50 ? $2*100 : 1/0) with boxes ls 2 title 'Low', \
      ''        using 0:($2*100 >= 50 && $2*100 < 70 ? $2*100 : 1/0) with boxes ls 3 title 'Medium', \
      ''        using 0:($2*100 >= 70 ? $2*100 : 1/0) with boxes ls 4 title 'Good', \
-     ''        using 0:($2*100 + 2):(sprintf("%.0f%%", $2*100)) with labels center font ",9" tc rgb "#333333" notitle
+     ''        using 0:($2*100 + 2):(sprintf("%.2f%%", $2*100)) with labels center font ",9" tc rgb "#333333" notitle
 
 # SVG output (same width)
 set terminal svg size width_px,height_px enhanced font 'Arial,12' background rgb '#fafafa'
