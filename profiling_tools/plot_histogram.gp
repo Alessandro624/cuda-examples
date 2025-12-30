@@ -89,7 +89,7 @@ set output OUTDIR.'/histogram_times.png'
 # Plot with conditional coloring (highlight fastest in green)
 plot data_file using 0:($2 == fastest_time ? $2 : 1/0):xtic(1) with boxes ls 2 title 'Best', \
      ''        using 0:($2 != fastest_time ? $2 : 1/0) with boxes ls 1 title 'Others', \
-     ''        using 0:($2 + ymax*0.02):(sprintf("%.3f s", $2)) with labels center font ",9" tc rgb "#333333" notitle
+     ''        using 0:($2 + ymax*0.02):(sprintf("%f s", $2)) with labels center font ",9" tc rgb "#333333" notitle
 
 # SVG output
 set terminal svg size width_px,height_px enhanced font 'Arial,12' background rgb '#fafafa'

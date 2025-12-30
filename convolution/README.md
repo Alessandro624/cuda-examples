@@ -111,7 +111,8 @@ Both implementations use a compile-time filter radius defined as:
 
 ## Notes
 
-- Constant memory provides broadcast capability for filter coefficients accessed by all threads
-- Tiling reduces global memory bandwidth by reusing data in shared memory
-- The halo region in tiled implementations handles boundary conditions
-- Use `NVCCFLAGS` in the Makefile to tune compilation flags for your hardware
+- Constant memory provides broadcast capability for filter coefficients accessed by all threads.
+- Tiling reduces global memory bandwidth by reusing data in shared memory.
+- The halo region in tiled implementations handles boundary conditions.
+- Use `NVCCFLAGS` in the Makefile to tune compilation flags for your hardware.
+- Use profiling tools: `../profiling_tools/profile_cuda.sh -d .`

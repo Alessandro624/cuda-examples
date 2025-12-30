@@ -101,14 +101,25 @@ Thread i processes: input[i*C], input[i*C+1], ..., input[i*C+(C-1)]
 ./parallelHistogram --bins 64 --n 1000000
 ```
 
-## Run Script
+## Run
 
 ```bash
 ./run.sh [OPTIONS]
 ```
 
-## Profile with nvprof
+## Profiling
 
 ```bash
+# Profile with nvprof
 ./profile_nvprof.sh --mode all --n 10000000
+
+# Use profiling tools
+../profiling_tools/profile_cuda.sh -d .
 ```
+
+## Notes
+
+- Maximum bins limited to 4096 due to shared memory constraints.
+- Privatized kernel provides best performance for typical use cases.
+- Coarsened kernel benefits from better memory coalescing.
+- Host-side verification ensures correctness.

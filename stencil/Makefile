@@ -1,0 +1,18 @@
+NVCC ?= nvcc
+NVCCFLAGS ?= -std=c++11 -O2
+TARGET = stencil
+
+all: $(TARGET)
+
+$(TARGET): stencil.cu
+	$(NVCC) $(NVCCFLAGS) -o $@ $^
+
+clean:
+	rm -f $(TARGET) *.o
+
+clean-logs:
+	rm -f *.log
+
+clean-all: clean clean-logs
+
+.PHONY: all clean clean-logs clean-all

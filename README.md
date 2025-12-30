@@ -59,14 +59,16 @@ If you do not have `nvprof`, install the CUDA toolkit, or run the GitHub Actions
 
 Click the folders below for the example README files and more details:
 
-- [`Vector Addition`](vector_addition/) — vector add example
+- [`Vector Addition`](vector_addition/) — vector add example with multiple modes
 - [`Error Handling`](error_handling/) — examples showing CUDA error handling
 - [`Device Specification`](device_specification/) — device query and capability examples
-- [`Image Manipulation`](image_manip/) — image processing examples (blur, grayscale); includes `stb` helper headers
+- [`Image Manipulation`](image_manip/) — image processing examples (blur, grayscale) with libpng
 - [`Matrix-Vector Multiplication`](matrix_vector_multiplication/) — matrix-vector multiplication example
-- [`Matrix Multiplication`](matrix_multiplication/) — matrix multiplication example
-- [`Convolution`](convolution/) — convolution examples (1D & 2D)
-- [`Profiling Tools`](profiling_tools/) — automated GPU profiling suite with roofline analysis, timing histograms, and occupancy visualization
+- [`Matrix Multiplication`](matrix_multiplication/) — matrix multiplication with naive, tiled, and coarsened kernels
+- [`Convolution`](convolution/) — 1D and 2D convolution with constant memory and tiling
+- [`Parallel Histogram`](parallel_histogram/) — parallel histogram with privatization, aggregation, and coarsening
+- [`3D Stencil`](stencil/) — 3D seven-point stencil with shared memory, coarsening, and register tiling
+- [`Profiling Tools`](profiling_tools/) — automated GPU profiling suite with roofline analysis
 
 Each folder includes a `README.md` with per-example instructions.
 
