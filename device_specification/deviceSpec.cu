@@ -41,7 +41,7 @@ static void printDeviceProp(int idx, const cudaDeviceProp *p)
     printf("  Max threads per block: %d\n", p->maxThreadsPerBlock);
     printf("  Max threads dim (block): x=%d y=%d z=%d\n", p->maxThreadsDim[0], p->maxThreadsDim[1], p->maxThreadsDim[2]);
     printf("  Max grid size: x=%d y=%d z=%d\n", p->maxGridSize[0], p->maxGridSize[1], p->maxGridSize[2]);
-    printf("  Shared memory per block: %d bytes\n", p->sharedMemPerBlock);
+    printf("  Shared memory per block: %zu bytes\n", p->sharedMemPerBlock);
     printf("  Registers per block: %d\n", p->regsPerBlock);
     printf("  Warp size: %d\n", p->warpSize);
     printf("  Memory clock rate: %d kHz\n", p->memoryClockRate);
