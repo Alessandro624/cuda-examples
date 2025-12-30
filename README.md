@@ -66,8 +66,34 @@ Click the folders below for the example README files and more details:
 - [`Matrix-Vector Multiplication`](matrix_vector_multiplication/) — matrix-vector multiplication example
 - [`Matrix Multiplication`](matrix_multiplication/) — matrix multiplication example
 - [`Convolution`](convolution/) — convolution examples (1D & 2D)
+- [`Profiling Tools`](profiling_tools/) — automated GPU profiling suite with roofline analysis, timing histograms, and occupancy visualization
 
 Each folder includes a `README.md` with per-example instructions.
+
+### Profiling Tools
+
+The [`profiling_tools/`](profiling_tools/) directory contains a complete GPU profiling suite:
+
+| File | Description |
+|------|-------------|
+| `profile_cuda.sh` | Main orchestration script for automated profiling |
+| `gpu_info.cu` | GPU specification detection and theoretical peak calculation |
+| `parse_metrics.py` | Metrics parser and data generator for roofline analysis |
+| `plot_roofline.gp` | Gnuplot script for roofline model visualization |
+| `plot_histogram.gp` | Gnuplot script for execution time comparison |
+| `plot_occupancy.gp` | Gnuplot script for SM occupancy visualization |
+
+**Quick start:**
+
+```bash
+# Profile all executables in a directory
+./profiling_tools/profile_cuda.sh -d ./matrix_multiplication/
+
+# Profile with specific arguments
+./profiling_tools/profile_cuda.sh -d ./vector_addition/ -a "--n 1048576 --threads 256"
+```
+
+See [profiling_tools/README.md](profiling_tools/README.md) for detailed usage.
 
 ## CLI conventions
 
