@@ -206,20 +206,39 @@ def extract_kernel_name(full_name, kernel_filter=None):
         return None  # No match, skip this kernel
     
     # Extract kernel name from mangled C++ name
-    # Pattern 1: "kernel_name(args)" or "kernel_name<template>(args)"
-    match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)', full_name)
+    # Pattern 1: "void kernel_name<...>(...)" - template kernels from nvprof
+    match = re.search(r'\bvoid\s+(\w+)\s*<', full_name)
     if match:
         return match.group(1)
     
-    # Pattern 2: "void kernel_name<...>(...)"
-    match = re.search(r'void\s+(\w+)', full_name)
+    # Pattern 2: "void kernel_name(...)" - simple kernels with void prefix
+    match = re.search(r'\bvoid\s+(\w+)\s*\(', full_name)
     if match:
         return match.group(1)
     
-    # Pattern 3: Namespace::kernel_name
+    # Pattern 3: "kernel_name<template>(args)" - template without void
+    match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*<', full_name)
+    if match:
+        return match.group(1)
+    
+    # Pattern 4: "kernel_name(args)" - simple kernel
+    match = re.match(r'^([a-zA-Z_][a-zA-Z0-9_]*)\s*\(', full_name)
+    if match:
+        return match.group(1)
+    
+    # Pattern 5: Namespace::kernel_name
     match = re.search(r'(\w+)(?:<|::|\()', full_name)
     if match:
-        return match.group(1)
+        name = match.group(1)
+        # Skip if it's just "void"
+        if name.lower() != 'void':
+            return name
+    
+    # Fallback: first word that's not void
+    words = re.findall(r'\b([a-zA-Z_]\w*)\b', full_name)
+    for w in words:
+        if w.lower() != 'void':
+            return w
     
     return full_name[:50]  # Truncate long names
 
