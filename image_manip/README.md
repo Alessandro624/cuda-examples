@@ -1,33 +1,49 @@
-# Image Manipulation (libpng)
+# Image Manipulation
 
-Simple CUDA examples that load PNG images with `libpng`, run GPU kernels (blur and grayscale), and write PNG outputs.
+CUDA examples that load PNG images with `libpng`, run GPU kernels (blur and grayscale), and write PNG outputs.
 
-Build:
+## Build
 
 ```bash
 cd image_manip
 make
 ```
 
-Programs and usage:
+Requires `libpng-dev` (or equivalent) installed on the system.
 
-- `imageBlur [--infile IN.png] [--outfile OUT.png]` : apply a small box blur (GPU)
-- `imageToGrayscale [--infile IN.png] [--outfile OUT.png]` : convert to grayscale on GPU
+## Usage
 
-Run examples (local runner):
+### imageBlur
+
+Apply a box blur filter on GPU:
+
+```bash
+./imageBlur [--infile IN.png] [--outfile OUT.png]
+```
+
+### imageToGrayscale
+
+Convert to grayscale on GPU:
+
+```bash
+./imageToGrayscale [--infile IN.png] [--outfile OUT.png]
+```
+
+## Run
 
 ```bash
 ./run.sh imageBlur --infile=input.png --outfile=output.png
+./run.sh imageToGrayscale --infile=input.png --outfile=gray.png
 ```
 
-Profile with nvprof:
+## Profiling
 
 ```bash
 ./profile_nvprof.sh imageBlur --infile=input.png --outfile=output.png
 ```
 
-Notes:
+## Notes
 
-- These examples use `libpng` from the system. Ensure `libpng-dev` (or equivalent) is installed and visible to the compiler.
-- The binaries link with `-lpng -lz`. If your system puts headers/libraries in non-standard locations, update `Makefile` accordingly.
+- Binaries link with `-lpng -lz`. If your system puts headers/libraries in non-standard locations, update `Makefile` accordingly.
 - Outputs keep the same number of channels as the input (RGB/RGBA).
+- Use `NVCCFLAGS` in the `Makefile` to tune compilation flags.

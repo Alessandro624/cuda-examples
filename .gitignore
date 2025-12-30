@@ -17,12 +17,17 @@ errorCudaMemcpy
 deviceSpec
 convolution1D
 convolution2D
+vectAdd_errors
+gpu_info
+parallel_histogram
+stencil
 
 # Profiler and logs
 *.nvvp
 *.prof
 nvprof-*.log
 *.log
+profiling_results*
 
 # OS and editor
 .DS_Store
