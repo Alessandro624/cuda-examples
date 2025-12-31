@@ -10,6 +10,7 @@
 #   -k, --kernels <list>      Comma-separated list of kernel names to profile (default: all)
 #   -a, --args <"args">       Arguments to pass to executables (in quotes)
 #   -o, --output <name>       Output directory name (default: profiling_results_TIMESTAMP)
+#   -p, --precision <fp32|fp64> Precision for roofline analysis (default: fp64)
 #   -h, --help                Show this help message
 #
 # Example:
@@ -24,6 +25,7 @@ EXECUTABLES=""
 KERNELS=""
 EXEC_ARGS=""
 OUTPUT_NAME=""
+PRECISION="fp64"
 
 # Colors for output
 RED='\033[0;31m'
@@ -53,6 +55,14 @@ while [[ $# -gt 0 ]]; do
             ;;
         -o|--output)
             OUTPUT_NAME="$2"
+            shift 2
+            ;;
+        -p|--precision)
+            PRECISION="$2"
+            if [[ "$PRECISION" != "fp32" && "$PRECISION" != "fp64" ]]; then
+                echo -e "${RED}Error: Precision must be 'fp32' or 'fp64'${NC}"
+                exit 1
+            fi
             shift 2
             ;;
         -h|--help)
@@ -252,7 +262,7 @@ echo "=========================================================="
 if [ -f "$SCRIPT_DIR/parse_metrics.py" ]; then
     cp "$SCRIPT_DIR/parse_metrics.py" "$OUTPUT_DIR/"
     cd "$OUTPUT_DIR"
-    python3 parse_metrics.py || echo -e "${YELLOW}Warning: Parsing failed${NC}"
+    python3 parse_metrics.py --precision "$PRECISION" || echo -e "${YELLOW}Warning: Parsing failed${NC}"
     
     # Generate plots if gnuplot is available
     if command -v gnuplot &> /dev/null; then
