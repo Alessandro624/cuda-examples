@@ -68,6 +68,7 @@ Click the folders below for the example README files and more details:
 - [`Convolution`](convolution/) — 1D and 2D convolution with constant memory and tiling
 - [`Parallel Histogram`](parallel_histogram/) — parallel histogram with privatization, aggregation, and coarsening
 - [`3D Stencil`](stencil/) — 3D seven-point stencil with shared memory, coarsening, and register tiling
+- [`Heat Transfer`](heat_transfer_cli/) — 2D heat transfer simulation with Global, Tiled, and Tiled with Halo kernels
 - [`Profiling Tools`](profiling_tools/) — automated GPU profiling suite with roofline analysis
 
 Each folder includes a `README.md` with per-example instructions.
