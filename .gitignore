@@ -21,6 +21,7 @@ vectAdd_errors
 gpu_info
 parallel_histogram
 stencil
+heat_transfer*
 
 # Profiler and logs
 *.nvvp
@@ -28,6 +29,7 @@ stencil
 nvprof-*.log
 *.log
 profiling_results*
+*.dat
 
 # OS and editor
 .DS_Store
